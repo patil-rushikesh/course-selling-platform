@@ -1,0 +1,36 @@
+# Set your ingress class, DNS name, and existing TLS Secret before applying.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: course-platform
+  namespace: course-platform
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts: [courses.example.com]
+      secretName: course-platform-tls
+  rules:
+    - host: courses.example.com
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: course-platform
+                port:
+                  number: 80
+          - path: /health
+            pathType: Prefix
+            backend:
+              service:
+                name: course-platform
+                port:
+                  number: 80
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: course-frontend
+                port:
+                  number: 80

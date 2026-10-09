@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: course-platform
+  namespace: course-platform
+spec:
+  # The built-in auth rate limiter is per process; use a shared store before scaling.
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: course-platform
+  template:
+    metadata:
+      labels:
+        app: course-platform
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: backend
+          image: course-platform:local
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          envFrom:
+            - configMapRef:
+                name: course-platform-config
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: course-platform-secrets
+                  key: DATABASE_URL
+            - name: JWT_USER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: course-platform-secrets
+                  key: JWT_USER_PASSWORD
+            - name: JWT_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: course-platform-secrets
+                  key: JWT_ADMIN_PASSWORD
+            - name: ADMIN_SIGNUP_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: course-platform-secrets
+                  key: ADMIN_SIGNUP_KEY
+          volumeMounts:
+            - name: temporary-files
+              mountPath: /tmp
+          ports:
+            - name: http
+              containerPort: 3000
+          startupProbe:
+            httpGet:
+              path: /health/ready
+              port: http
+            periodSeconds: 5
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: http
+            periodSeconds: 15
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: '1'
+              memory: 768Mi
+      volumes:
+        - name: temporary-files
+          emptyDir: {}

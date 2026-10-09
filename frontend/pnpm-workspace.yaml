@@ -1,0 +1,2 @@
+# Standalone frontend; independent of the backend's installation and image.
+engineStrict: true

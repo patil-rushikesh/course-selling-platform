@@ -1,0 +1,80 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String           @id @default(uuid()) @db.Uuid
+  email        String           @unique
+  tokenVersion Int              @default(0)
+  password     String
+  firstName    String
+  lastName     String
+  purchases    Purchase[]
+  progress     LessonProgress[]
+}
+
+model Admin {
+  id           String   @id @default(uuid()) @db.Uuid
+  email        String   @unique
+  tokenVersion Int      @default(0)
+  password     String
+  firstName    String
+  lastName     String
+  courses      Course[]
+}
+
+model Course {
+  id          String     @id @default(uuid()) @db.Uuid
+  published   Boolean    @default(true)
+  lessons     Lesson[]
+  title       String
+  description String
+  price       Decimal    @db.Decimal(12, 2)
+  imageURL    String
+  creatorId   String     @db.Uuid
+  creator     Admin      @relation(fields: [creatorId], references: [id], onDelete: Restrict)
+  purchases   Purchase[]
+
+  @@index([creatorId])
+}
+
+model Purchase {
+  id       String @id @default(uuid()) @db.Uuid
+  userId   String @db.Uuid
+  courseId String @db.Uuid
+  user     User   @relation(fields: [userId], references: [id], onDelete: Restrict)
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Restrict)
+
+  @@unique([userId, courseId])
+  @@index([courseId])
+}
+
+model Lesson {
+  id       String           @id @default(uuid()) @db.Uuid
+  courseId String           @db.Uuid
+  course   Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title    String
+  content  String
+  videoURL String?
+  position Int
+  progress LessonProgress[]
+
+  @@unique([courseId, position])
+}
+
+model LessonProgress {
+  userId    String   @db.Uuid
+  lessonId  String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson    Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  completed Boolean  @default(false)
+  updatedAt DateTime @updatedAt
+
+  @@id([userId, lessonId])
+  @@index([lessonId])
+}

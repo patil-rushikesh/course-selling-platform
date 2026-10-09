@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: course-platform
+  namespace: course-platform
+spec:
+  selector:
+    app: course-platform
+  ports:
+    - port: 80
+      targetPort: http

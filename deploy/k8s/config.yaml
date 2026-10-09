@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: course-platform-config
+  namespace: course-platform
+data:
+  NODE_ENV: production
+  PORT: '3000'
+  LOG_LEVEL: info
+  LOG_SLOW_REQUEST_MS: '1000'
+  LOG_HEALTH_CHECKS: 'false'
+  HTTPS_ONLY: 'true'
+  # One trusted ingress proxy. Adjust to match your cluster's actual topology.
+  TRUST_PROXY_HOPS: '1'

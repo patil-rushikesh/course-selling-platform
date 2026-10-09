@@ -1,0 +1,12 @@
+node_modules
+generated
+.git
+.env
+.env.*
+*.local.env
+coverage
+test
+.github
+.DS_Store
+
+frontend
