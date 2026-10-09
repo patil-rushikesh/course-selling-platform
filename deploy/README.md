@@ -167,3 +167,5 @@ kind load docker-image "$APP_IMAGE" "$FRONTEND_IMAGE" --name course-platform
 Continue with steps 2–4. The image pull policy permits the loaded local image.
 Stop with `kind delete cluster --name course-platform` only when you intend to
 remove the local cluster and its database storage.
+
+This is for testing the commands.
